@@ -5,9 +5,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class QQWryFile {
 	private final static String IP_FILE = getQQWryFilePath();
+	private static HashMap<String,String> pairs = new LinkedHashMap<>(5000);
 	private static final int IP_RECORD_LENGTH = 7;
 	private RandomAccessFile ipFile = null;
 
@@ -97,31 +100,34 @@ public class QQWryFile {
 	}
 
 	public static String getAddress(String ip){
-		QQWryFile qqWryFile = QQWryFile.getInstance();
-		RandomAccessFile ipFile = qqWryFile.getIpFile();
-		QQWryRecord record = qqWryFile.find(ip, ipFile);
-		return record.getCountry() + "," + record.getArea();
+		if(pairs.keySet().contains(ip)){
+			return pairs.get(ip);
+		}else {
+			QQWryFile qqWryFile = QQWryFile.getInstance();
+			RandomAccessFile ipFile = qqWryFile.getIpFile();
+			QQWryRecord record = qqWryFile.find(ip, ipFile);
+			String s = record.getCountry() + "," + record.getArea();
+			if(pairs.size()>5000){
+				pairs.clear();
+			}
+			pairs.put(ip,s);
+			return s;
+		}
 	}
 
 	public static void main(String[] args)  {
 		String ip = "202.108.22.5";
 		// ip = "202.108.9.155";
 
-		QQWryFile qqWryFile = QQWryFile.getInstance();
-		RandomAccessFile ipFile = qqWryFile.getIpFile();
-		QQWryRecord record = qqWryFile.find(ip, ipFile);
-
-		System.out.println(Utils.ipToStr(record.getBeginIP()));
-		System.out.println(Utils.ipToStr(record.getEndIP()));
-		System.out.println(record.getCountry());
-		System.out.println(record.getArea());
-
-		// System.out.println(Utils.ipToStr(16842751));
-		// System.out.println(Utils.ipToLong(ip));
-		// qqWryFile.storageToPg(ipFile, 100);
-		// qqWryFile.storageToMongoDB(ipFile, 100);
-		
-		qqWryFile.closeIpFile(ipFile);
-		qqWryFile = null;
+		String address = getAddress(ip);
+		System.out.println(pairs.size()+":"+address);
+		address = getAddress(ip);
+		System.out.println(pairs.size()+":"+address);
+		ip = "202.108.9.155";
+		address = getAddress(ip);
+		System.out.println(pairs.size()+":"+address);
+		ip = "202.108.9.155";
+		address = getAddress(ip);
+		System.out.println(pairs.size()+":"+address);
 	}
 }
