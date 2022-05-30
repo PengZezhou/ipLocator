@@ -96,6 +96,12 @@ public class QQWryFile {
 		}
 	}
 
+	public static String getAddress(String ip){
+		QQWryFile qqWryFile = QQWryFile.getInstance();
+		RandomAccessFile ipFile = qqWryFile.getIpFile();
+		QQWryRecord record = qqWryFile.find(ip, ipFile);
+		return record.getCountry() + "," + record.getArea();
+	}
 
 	public static void main(String[] args)  {
 		String ip = "202.108.22.5";
